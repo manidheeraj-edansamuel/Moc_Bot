@@ -3,6 +3,6 @@ pypdf
 sentence-transformers
 faiss-cpu
 numpy
-transformers
+transformers>=4.45.0
 torch
 openai
