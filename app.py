@@ -73,20 +73,22 @@ def extract_text_from_pdf(uploaded_file) -> str:
     return text
 
 
-def chunk_text(text: str, size: int, overlap: int) -> list[str]:
-    """Split text into overlapping fixed-size chunks."""
-    text = " ".join(text.split())  # normalize whitespace
+def chunk_text(text, size=800, overlap=100):
+    text = " ".join(text.split())
+
     chunks = []
     start = 0
+
     while start < len(text):
-        end = start + size
+        end = min(start + size, len(text))
         chunks.append(text[start:end])
-        start = end - overlap  # step forward, keeping some overlap
-        if start < 0:
-            start = 0
-        if end >= len(text):
+
+        if end == len(text):
             break
-    return [c.strip() for c in chunks if c.strip()]
+
+        start = end - overlap
+
+    return chunks
 
 
 def build_faiss_index(chunks: list[str]):
@@ -121,11 +123,17 @@ def build_prompt(question: str, context_chunks: list[str]) -> str:
     )
 
 
-def generate_answer_local(prompt: str) -> str:
-    """Generate an answer using a local, free Hugging Face model."""
+def generate_answer_local(prompt):
     llm = load_local_llm()
-    result = llm(prompt, max_new_tokens=200)
-    return result[0]["generated_text"]
+
+    response = llm(
+        prompt,
+        max_new_tokens=150,
+        do_sample=False,
+        truncation=True,
+    )
+
+    return response[0]["generated_text"]
 
 
 def generate_answer_openai(prompt: str, api_key: str) -> str:
