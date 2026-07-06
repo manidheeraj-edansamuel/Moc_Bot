@@ -1,56 +1,89 @@
-# Simple RAG Chatbot (Free & Local)
+# Simple RAG Chatbot (Streamlit)
 
-A minimal Retrieval-Augmented Generation (RAG) app built for GenAI students.
-No API key needed — everything runs locally and for free.
+A minimal Retrieval-Augmented Generation (RAG) app for learning purposes.
+Upload a PDF, ask questions, and get answers grounded in the document —
+no fine-tuning required.
 
 ## How it works
 
 ```
-PDF Upload → Extract Text → Chunk Text → Embed Chunks → Store in FAISS
-                                                              │
-User Question → Embed Question → Similarity Search ──────────┘
-                                        │
-                                Retrieve Top Chunks
-                                        │
-                              Local LLM (FLAN-T5) generates the answer
+PDF Documents
+      │
+      ▼
+Text Chunking
+      │
+      ▼
+Embedding Model  (all-MiniLM-L6-v2)
+      │
+      ▼
+Vector Database  (FAISS)
+      │
+User Question ──► Embedding
+      │
+      ▼
+Similarity Search
+      │
+      ▼
+Relevant Chunks
+      │
+      ▼
+Large Language Model  (Local FLAN-T5 or OpenAI GPT)
+      │
+      ▼
+Final Answer
 ```
 
-- **Embeddings:** `sentence-transformers` (`all-MiniLM-L6-v2`)
-- **Vector Database:** `FAISS`
-- **LLM:** `google/flan-t5-base` (via Hugging Face `transformers`, runs on CPU)
+## 1. Setup
 
-## Setup
+Create a virtual environment (recommended) and install dependencies:
 
 ```bash
-# 1. Create a virtual environment (recommended)
 python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 
-# 2. Install dependencies
 pip install -r requirements.txt
+```
 
-# 3. Run the app
+> Installing `torch` and `sentence-transformers` may take a few minutes the first time.
+
+## 2. Run the app
+
+```bash
 streamlit run app.py
 ```
 
-The first run will download the embedding model (~90MB) and the FLAN-T5
-model (~250MB) from Hugging Face — this requires an internet connection
-once, then everything works offline.
+Your browser will open at `http://localhost:8501`.
 
-## Using the app
+## 3. Using the app
 
-1. Open the app in your browser (Streamlit will print a local URL).
-2. Upload any PDF (e.g. a college notes file, a policy document).
-3. Type a question about the document's content.
-4. The app retrieves the most relevant chunks and shows a grounded answer,
-   along with the exact source chunks it used (expand "See retrieved chunks").
+1. In the sidebar, choose your **answer generation backend**:
+   - **Local (FLAN-T5)** — free, runs on your machine, no API key needed. Good for testing and offline demos.
+   - **OpenAI** — better quality answers, requires your own OpenAI API key (get one at https://platform.openai.com/api-keys).
+2. Upload a PDF (e.g. an HR policy document, lecture notes, a manual).
+3. Type a question about the document and click **Get Answer**.
+4. Expand **"Show retrieved chunks"** to see exactly which parts of the document were used to generate the answer — this is what makes RAG transparent and reduces hallucination.
 
-## Notes for students
+## Project structure
 
-- `flan-t5-base` is a small model — good for demos, but answers may be
-  simpler than GPT-4/Gemini. Swap in a larger model (e.g. `flan-t5-large`)
-  or a hosted API in `load_generator()` for better quality.
-- `chunk_size` and `overlap` in `chunk_text()` control how documents are
-  split — try tuning these for longer/shorter documents.
-- `top_k` in `retrieve_relevant_chunks()` controls how many chunks are
-  retrieved per question.
+```
+.
+├── app.py             # Main Streamlit application
+├── requirements.txt   # Python dependencies
+└── README.md          # This file
+```
+
+## Ideas for extending this project (great for assignments!)
+
+- Swap FAISS for **ChromaDB** to see a different vector store in action.
+- Support multiple PDFs at once (multi-document RAG).
+- Add a **chat history** so follow-up questions retain context.
+- Try a different embedding model (e.g. `all-mpnet-base-v2` for higher quality).
+- Add source page numbers to the retrieved chunks.
+- Deploy it on **Streamlit Community Cloud** to share with others.
+
+## Troubleshooting
+
+- **"Couldn't extract any text from this PDF"** — the PDF is likely scanned images rather than real text. You'd need OCR (e.g. `pytesseract`) to handle those.
+- **Slow first run** — the embedding/local LLM models are downloaded once and cached; subsequent runs are faster.
+- **Local model answers are short/simple** — FLAN-T5-base is a small model. Switch to the OpenAI backend for noticeably better answers.
+
