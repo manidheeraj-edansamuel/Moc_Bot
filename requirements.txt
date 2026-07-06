@@ -1,8 +1,9 @@
-streamlit
-pypdf
-sentence-transformers
-faiss-cpu
-numpy
-transformers>=4.45.0
-torch
-openai
+streamlit==1.47.0
+transformers==4.53.2
+torch==2.7.1
+sentence-transformers==5.0.0
+faiss-cpu==1.11.0
+pypdf==5.7.0
+accelerate==1.8.1
+openai==1.95.1
+numpy==2.3.1
